@@ -1,0 +1,6 @@
+@VgcZeroGamePlatform_HostAddress = http://localhost:5187
+
+GET {{VgcZeroGamePlatform_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
