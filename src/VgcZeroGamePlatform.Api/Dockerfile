@@ -2,7 +2,7 @@
 
 # This stage is used when running from VS in fast mode (Default for Debug configuration)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER app
+USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
@@ -12,19 +12,19 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["VgcZeroGamePlatform.csproj", "."]
-RUN dotnet restore "./VgcZeroGamePlatform.csproj"
+COPY ["VgcZeroGamePlatform.Api/VgcZeroGamePlatform.Api.csproj", "VgcZeroGamePlatform.Api/"]
+RUN dotnet restore "./VgcZeroGamePlatform.Api/VgcZeroGamePlatform.Api.csproj"
 COPY . .
-WORKDIR "/src/."
-RUN dotnet build "./VgcZeroGamePlatform.csproj" -c $BUILD_CONFIGURATION -o /app/build
+WORKDIR "/src/VgcZeroGamePlatform.Api"
+RUN dotnet build "./VgcZeroGamePlatform.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./VgcZeroGamePlatform.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "./VgcZeroGamePlatform.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "VgcZeroGamePlatform.dll"]
+ENTRYPOINT ["dotnet", "VgcZeroGamePlatform.Api.dll"]
